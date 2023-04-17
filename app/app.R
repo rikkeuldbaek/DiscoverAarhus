@@ -41,8 +41,8 @@ ui <- fluidPage(
                                            min = 100,
                                            max = 7000,
                                            value = 500) #default start distance
-                
-            )),
+                          )
+                ),
             
             #select box for age group
                 wellPanel(selectInput("age_group_select", #input name
@@ -51,15 +51,15 @@ ui <- fluidPage(
                                                         "children" = "children",
                                                         "students" = "students",
                                                         "adults" = "adults"),
-                                      selected = 1
-            )),
+                                      selected = 1)
+            ),
             
             #select box for activity category
-                wellPanel(selectInput("activity_category_select", #input name
-                                      label= h4("Activity category"),
-                                      choices = list(unique(data$Type) = unique(data$Type)),
-                                      selected = 1
-                                      ))
+                #wellPanel(selectInput("activity_category_select", #input name
+                #                      label= h4("Activity category"),
+                #                      choices = list(unique(data$Type) == unique(data$Type)),
+                #                      selected = 1
+                #                      ))
             
                 
             # ADD ANOTHER WIDGET (husk intet komma efter sidste widget(som ovenståend))
@@ -68,7 +68,6 @@ ui <- fluidPage(
         
         
             
-        
         
         # Create main panel
         mainPanel(
