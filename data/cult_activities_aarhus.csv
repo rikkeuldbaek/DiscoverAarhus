@@ -1,0 +1,4 @@
+﻿Placename;Type;Coordinates;Latitude;Longitude;Description;link;group_children;group_students;group_adults;costs;col_type
+ARoS;museum;56.1554625,10.2070687;56.1554625;10.2070687;Stort museum med dansk guldalderkunst og dansk og international nutidskunst samt et cirkulært panoramatag.;https://www.aros.dk/da/;1;1;1;1;#FF00D6
+Radar;venue;56.1533971,10.1877665;56.1533971;10.1877665;Spillested;http://www.radarlive.dk/;0;1;1;1;#8F00FF
+Børnenes Jord;playground;56.1619702,10.2063345;56.1619702;10.2063345;Børnenes og Beboernes Jord er en legeplads for alle mellem 0 og 100 år. Der er åben adgang til stedet og alle er velkomne til de mange gratis arrangementer, der planlægges og afvikles af lokale frivillige i ø-gaderne;http://bornibyen.dk/aarhus/places/3176-legepladsen-boernenes-jord;1;0;0;0;#1400FF
