@@ -49,11 +49,20 @@ ui <- fluidPage(
                                       label = h4("Age group"),
                                       choices = list( "all" = "all",
                                                         "children" = "children",
-                                                        "students" = "students",
                                                         "adults" = "adults"),
                                       selected = 1)
             ),
             
+            #select box for inside and outside activities
+              wellPanel(selectInput("inside_outside_select",
+                                   label= h4("Inside/Outside"),
+                                   choices = list("inside" = "inside",
+                                                  "outside" = "outside"),
+                                   selected = 1
+                                   )
+            ),
+            
+            # DOES NOT WORK
             #select box for activity category
                 #wellPanel(selectInput("activity_category_select", #input name
                 #                      label= h4("Activity category"),
@@ -62,7 +71,7 @@ ui <- fluidPage(
                 #                      ))
             
                 
-            # ADD ANOTHER WIDGET (husk intet komma efter sidste widget(som ovenståend))
+            # ADD ANOTHER WIDGET (husk intet komma efter sidste widget(som ovenstående))
             
             ), #fluid row parenthesis
         
@@ -111,7 +120,8 @@ server <- function(input, output) {
     output$map = renderLeaflet({ #output$map betyder: vis kortet (map er defineret i ui.)
         #map displayed (den her kan ændres som man lyster)
           leaflet(data %>% 
-                     dplyr::filter(group == input$age_group_select)) %>% # filters age group
+                    dplyr::filter(inside_outside ==input$inside_outside_select) %>% # filters inside/outside
+                    dplyr::filter(group == input$age_group_select)) %>% # filters age group
             addTiles() %>%
             setView(lng = 10.2131012, lat = 56.1557451, zoom = 12) %>%  # start location on map
             addCircles(lat = ~Latitude, lng = ~Longitude, #VIL GERNE HAVE MARKERS !
