@@ -1,0 +1,108 @@
+---
+title: "Data Preprocessing"
+author: "Louise Brix Pilegaard Hansen and Rikke Uldbæk"
+date: "2023-04-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+#install.packages("leaflet")
+install.packages("googlesheets4")
+```
+
+```{r}
+library(sp)
+library(rgdal)
+library(sf)
+library(leaflet)
+library(readxl)
+library(googlesheets4)
+```
+
+# Read in GeoJSON data from OpenData
+
+```{r}
+playgrounds <- st_read("legepladser.json")
+```
+
+
+# Load Google Sheets datapoints
+
+```{r}
+googlesheets4::gs4_deauth()
+googlesheets4::gs4_auth()
+
+sheets_data <- read_sheet("https://docs.google.com/spreadsheets/d/1Qdjz-TU4ispjOAkpdMw9b8wGRgpLUHeg3CjE4lzD-iQ/edit#gid=0", range = "AarhusData")
+
+# need to divide the coordinates
+sheets_data_sf <- st_as_sf(sheets_data)
+```
+
+
+```{r}
+data <- read_excel("./data/cult_activities_aarhus.xls")
+data$latitude <- as.numeric(data$Latitude)
+data$longitude <- as.numeric(data$Longitude)
+```
+
+```{r}
+data_sf <- data %>% 
+  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>% # i am setting, NOT transforming the CRS here. 4326 because it is longlat = unprojected crs
+  st_transform(crs = 25832)
+```
+
+# OBS: these are the wrong coordinates
+```{r}
+c <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=as.numeric(data$Longitude), lat=as.numeric(data$Latitude), popup=data$Placename)
+c  # Print the map
+```
+
+```{r}
+data_sf <- data_sf %>% 
+  st_transform(crs = 4326)
+```
+
+```{r}
+c <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=as.numeric(data_sf$Longitude), lat=as.numeric(data_sf$Latitude), popup=data_sf$Placename)
+c  # Print the map
+```
+
+
+# trying to extract information from the playgrounds sf frame
+
+```{r}
+coords_play <- st_coordinates(playgrounds)
+```
+
+```{r}
+st_transform(crs = 25832)
+```
+
+
+```{r}
+st_crs(playgrounds)
+```
+
+
+```{r}
+playgrounds <- playgrounds %>% 
+  st_transform(crs = 4326)
+
+st_crs(playgrounds)
+```
+
+```{r}
+coords_playground <- st_coordinates(playgrounds)
+
+c <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=coords_playground[, 1], lat=coords_playground[, 2], popup = playgrounds$lokation)
+c  # Print the map
+```
+
