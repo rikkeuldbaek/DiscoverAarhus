@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 
 #install.packages("leaflet")
-install.packages("googlesheets4")
+#install.packages("googlesheets4")
 ```
 
 ```{r}
@@ -20,13 +20,6 @@ library(leaflet)
 library(readxl)
 library(googlesheets4)
 ```
-
-# Read in GeoJSON data from OpenData
-
-```{r}
-playgrounds <- st_read("legepladser.json")
-```
-
 
 # Load Google Sheets datapoints
 
@@ -76,24 +69,34 @@ c  # Print the map
 
 # trying to extract information from the playgrounds sf frame
 
-```{r}
-coords_play <- st_coordinates(playgrounds)
-```
+WORKFLOW: 
+- Read in json files from folder
+- read them in as a Spatial Object
+- transform CRS to '4326' (= same as leaflet)
+- extract coordinates
+- plot in leaflet
+
+
+
+## Read in GeoJSON data from OpenData
 
 ```{r}
-st_transform(crs = 25832)
+playgrounds <- st_read("data/geojson_files/legepladser.json")
 ```
-
 
 ```{r}
 st_crs(playgrounds)
 ```
 
+The EPSG of the playgrounds object is 25832. The CRS of leaflet is 4326, so we need to transform the coordinates
 
 ```{r}
 playgrounds <- playgrounds %>% 
   st_transform(crs = 4326)
+```
 
+Now leaflet and "playgrounds" have the same CRS and can be plotted:
+```{r}
 st_crs(playgrounds)
 ```
 
@@ -104,5 +107,44 @@ c <- leaflet() %>%
   addTiles() %>%  # Add default OpenStreetMap map tiles
   addMarkers(lng=coords_playground[, 1], lat=coords_playground[, 2], popup = playgrounds$lokation)
 c  # Print the map
+```
+
+## add two different spatial objects in same map:
+
+```{r}
+shelters <- st_read("data/geojson_files/shelter.json")
+
+shelters <- shelters %>% 
+  st_transform(crs = 4326)
+
+shelters_coords <- st_coordinates(shelters)
+```
+
+### add to existing map
+```{r}
+c <- addMarkers(c, lng=shelters_coords[, 1], lat=shelters_coords[, 2], popup = shelters$navn)
+c
+```
+
+
+## try loading vector data
+```{r}
+vandreruter <- st_read("data/geojson_files/vandreruter.json")
+```
+```{r}
+vandreruter <- vandreruter %>% 
+  st_transform(crs = 4326)
+```
+
+```{r}
+vandre_coord <- st_coordinates(vandreruter)
+```
+
+```{r}
+l <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  #addMarkers(lng=coords_playground[, 1], lat=coords_playground[, 2], popup = playgrounds$lokation)
+  addPolylines(lng=vandre_coord[, 1], lat=vandre_coord[, 2])
+l  # Print the map
 ```
 
