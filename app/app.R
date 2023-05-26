@@ -92,10 +92,6 @@ ui <- fluidPage(
 server <- function(input, output) {
     
     
-    # Align CRS
-    #data_sf<- st_as_sf(data, coords = c("longitude", "latitude"),crs = 4326)
-    #data <- st_transform(data_sf, "+proj=utm +zone=42N +datum=WGS84 +units=km")
-    
     map_df = reactive({
 
       data %>%
