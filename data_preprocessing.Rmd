@@ -13,6 +13,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+options(digits = 15)
+```
+
+```{r}
 library(sp)
 library(rgdal)
 library(sf)
@@ -21,33 +25,6 @@ library(readxl)
 library(googlesheets4)
 ```
 
-# Load Google Sheets datapoints
-
-```{r}
-googlesheets4::gs4_deauth()
-googlesheets4::gs4_auth()
-
-sheets_data <- read_sheet("https://docs.google.com/spreadsheets/d/1Qdjz-TU4ispjOAkpdMw9b8wGRgpLUHeg3CjE4lzD-iQ/edit#gid=0", range = "AarhusData")
-
-# need to divide the coordinates
-sheets_data_sf <- st_as_sf(sheets_data)
-```
-
-
-```{r}
-data <- read_excel("./data/cult_activities_aarhus.xls")
-data$latitude <- as.numeric(data$Latitude)
-data$longitude <- as.numeric(data$Longitude)
-```
-
-
-WORKFLOW: 
-- Read in json files from folder
-- read them in as a Spatial Object
-- add them all to same sf dataframe
-- transform CRS to '4326' (= same as leaflet)
-- extract coordinates
-- plot in leaflet
 
 
 ## Read in GeoJSON data from OpenData
@@ -91,12 +68,14 @@ create_sf <- function(df, name, geo, act_type, description, indoor_outdoor, grou
 name <- df[[name]]
 geometry <- df[[geo]]
 type <- rep(act_type, length(geometry))
-all <- 'Show all'
+type_all <- 'Show all'
 description <- rep(description, length(geometry))
 group <- rep(group, length(geometry))
+group_all <- 'Show all'
 indoor_outdoor<- rep(indoor_outdoor, length(geometry))
+in_out_all <- 'Show all'
 
-df_new <- data.frame(name, geometry, type, all, description, group, indoor_outdoor)
+df_new <- data.frame(name, geometry, type, type_all, description, group, group_all, indoor_outdoor, in_out_all)
 
 df_sf <- st_as_sf(df_new)
 
@@ -116,6 +95,11 @@ free_fitness_json <- st_read('data/geojson_files/fitness_i_det_fri.json')
 shelters_json <- st_read('data/geojson_files/shelter.json')
 
 climbing_json <- st_read('data/geojson_files/træklatring.json')
+
+# de her to skal der måske filtreres lidt i? er pt. ikke med i datasettet, da mange af punkterne måske lægger udenfor vores grænse
+forests_json <- st_read('data/geojson_files/store_skove.json')
+
+firepits_json <- st_read('data/geojson_files/bålpladser.json')
 ```
 
 ```{r}
@@ -126,6 +110,7 @@ head(climbing_json)
 ```
 
 Based on the column names, create new dataframes
+
 ```{r}
 playgrounds <- create_sf(playgrounds_json, 'lokation', 'geometry', 'Playground', 'Outdoor playground', 'Outdoor', 'Children')
 
@@ -160,6 +145,23 @@ df_multipoints <- subset(df_multipoints, select = -c(L1))
 df_all <- rbind(df_points, df_multipoints)
 ```
 
+```{r}
+excel_data <- read_excel("./data/DiscoverAarhus.xlsx")
+
+excel_data <- excel_data[, c("name", "type", "type_all", "description", "group", "group_all", "indoor_outdoor", "in_out_all", "X", "Y", "geometry")]
+
+excel_data <- excel_data %>% 
+  drop_na()
+
+excel_sf <- st_as_sf(x = excel_data, coords=c("X", "Y"), crs = 4326)
+
+own_data_coords <- st_coordinates(excel_sf)
+
+excel_sf <- cbind(excel_sf, own_data_coords)
+
+df_all <- rbind(df_all, excel_sf)
+```
+
 
 
 ## map that adds all points and polygons
@@ -177,6 +179,9 @@ noter:
 - add markerClustering!
 - awesomeMarkers? ændre på marker type
 - indlæse flere geojson files
+  skal evt ikke bruges
 - indlæse excel ark med data punkter
+- hvordan fungerer det ift. polygoner og shiny app
+
 
 
