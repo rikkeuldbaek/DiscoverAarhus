@@ -40,42 +40,14 @@ data$latitude <- as.numeric(data$Latitude)
 data$longitude <- as.numeric(data$Longitude)
 ```
 
-```{r}
-data_sf <- data %>% 
-  st_as_sf(coords = c("longitude", "latitude"), crs = 4326) %>% # i am setting, NOT transforming the CRS here. 4326 because it is longlat = unprojected crs
-  st_transform(crs = 25832)
-```
-
-# OBS: these are the wrong coordinates
-```{r}
-c <- leaflet() %>%
-  addTiles() %>%  # Add default OpenStreetMap map tiles
-  addMarkers(lng=as.numeric(data$Longitude), lat=as.numeric(data$Latitude), popup=data$Placename)
-c  # Print the map
-```
-
-```{r}
-data_sf <- data_sf %>% 
-  st_transform(crs = 4326)
-```
-
-```{r}
-c <- leaflet() %>%
-  addTiles() %>%  # Add default OpenStreetMap map tiles
-  addMarkers(lng=as.numeric(data_sf$Longitude), lat=as.numeric(data_sf$Latitude), popup=data_sf$Placename)
-c  # Print the map
-```
-
-
-# trying to extract information from the playgrounds sf frame
 
 WORKFLOW: 
 - Read in json files from folder
 - read them in as a Spatial Object
+- add them all to same sf dataframe
 - transform CRS to '4326' (= same as leaflet)
 - extract coordinates
 - plot in leaflet
-
 
 
 ## Read in GeoJSON data from OpenData
@@ -109,42 +81,102 @@ c <- leaflet() %>%
 c  # Print the map
 ```
 
-## add two different spatial objects in same map:
 
+## Load GeoJSon files
 ```{r}
-shelters <- st_read("data/geojson_files/shelter.json")
+create_sf <- function(df, name, geo, act_type, description, indoor_outdoor, group){
 
-shelters <- shelters %>% 
-  st_transform(crs = 4326)
+#df <- st_read(paste0('data/geojson_files/', geo_json))
 
-shelters_coords <- st_coordinates(shelters)
+name <- df[[name]]
+geometry <- df[[geo]]
+type <- rep(act_type, length(geometry))
+all <- 'Show all'
+description <- rep(description, length(geometry))
+group <- rep(group, length(geometry))
+indoor_outdoor<- rep(indoor_outdoor, length(geometry))
+
+df_new <- data.frame(name, geometry, type, all, description, group, indoor_outdoor)
+
+df_sf <- st_as_sf(df_new)
+
+df_sf <- df_sf %>% 
+ st_transform(crs = 4326)
+
+return(df_sf)
+}
 ```
 
-### add to existing map
+# load as dataframes to see their column names
 ```{r}
-c <- addMarkers(c, lng=shelters_coords[, 1], lat=shelters_coords[, 2], popup = shelters$navn)
-c
-```
+playgrounds_json <- st_read('data/geojson_files/legepladser.json')
 
+free_fitness_json <- st_read('data/geojson_files/fitness_i_det_fri.json')
 
-## try loading vector data
-```{r}
-vandreruter <- st_read("data/geojson_files/vandreruter.json")
-```
-```{r}
-vandreruter <- vandreruter %>% 
-  st_transform(crs = 4326)
+shelters_json <- st_read('data/geojson_files/shelter.json')
+
+climbing_json <- st_read('data/geojson_files/træklatring.json')
 ```
 
 ```{r}
-vandre_coord <- st_coordinates(vandreruter)
+head(playgrounds_json)
+head(free_fitness_json)
+head(shelters_json)
+head(climbing_json)
 ```
 
+Based on the column names, create new dataframes
 ```{r}
-l <- leaflet() %>%
+playgrounds <- create_sf(playgrounds_json, 'lokation', 'geometry', 'Playground', 'Outdoor playground', 'Outdoor', 'Children')
+
+outdoor_fitness <- create_sf(free_fitness_json, 'navn', 'geometry', 'Exercise','Outdoor fitness facilities', 'Outdoor', 'Adults')
+
+shelters <- create_sf(shelters_json, 'navn', 'geometry', 'Shelter', 'Outdoor shelter', 'Outdoor', 'Both children and adults')
+
+tree_climbing <- create_sf(climbing_json, 'navn', 'geometry', 'Tree climbing', 'Climbing', 'Outdoor', 'Both children and adults')
+```
+
+Points, multipoints and polygons can't all be plotted together, so we need to make seperate dataframes
+```{r}
+df_points <- rbind(playgrounds, shelters)
+
+df_multipoints <- outdoor_fitness
+  
+df_polygons <- tree_climbing
+```
+
+# extract coordinates from points and multipoints and bind them together to one dataframe 
+```{r}
+points_coords <- st_coordinates(df_points)
+
+multi_coords <- st_coordinates(df_multipoints)
+
+df_points <- cbind(df_points, points_coords)
+
+df_multipoints <- cbind(df_multipoints, multi_coords)
+
+df_multipoints <- subset(df_multipoints, select = -c(L1))
+
+df_all <- rbind(df_points, df_multipoints)
+```
+
+
+
+## map that adds all points and polygons
+```{r}
+c <- leaflet() %>%
   addTiles() %>%  # Add default OpenStreetMap map tiles
-  #addMarkers(lng=coords_playground[, 1], lat=coords_playground[, 2], popup = playgrounds$lokation)
-  addPolylines(lng=vandre_coord[, 1], lat=vandre_coord[, 2])
-l  # Print the map
+  addMarkers(lng=df_all$X, lat=df_all$Y, popup = df_all$name, clusterOptions = markerClusterOptions()) %>%
+  addPolygons(data = df_polygons, label = df_polygons$name)
+c  # Print the map
 ```
+
+
+noter:
+
+- add markerClustering!
+- awesomeMarkers? ændre på marker type
+- indlæse flere geojson files
+- indlæse excel ark med data punkter
+
 
