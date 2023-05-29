@@ -22,15 +22,14 @@ df$longitude <- as.numeric(df$longitude)
 
 
 
-
 # Dataframe containing fun facts
 text_for_waiting_screen <- data.frame(text= c("Let's discover Aarhus!",  "Are you ready?")) 
 
 # Specifying details of waiting screen
 waiting_screen <- tagList(
   spin_loaders(21), # define spinner
-  h3(sample(text_for_waiting_screen$text[1], 1), style = "color:#FFFFFF;font-weight: 100;font-family: 'Helvetica Neue', Helvetica;font-size: 27px;"),
-  h3(sample(text_for_waiting_screen$text[2], 1), style = "color:#FFFFFF;font-weight: 100;font-family: 'Helvetica Neue', Helvetica;font-size: 27px;"),
+  h3(text_for_waiting_screen$text[1], style = "color:#FFFFFF;font-weight: 50;font-family: 'Helvetica Neue', Helvetica;font-size: 40px;"),
+  h3(text_for_waiting_screen$text[2], style = "color:#FFFFFF;font-weight: 50;font-family: 'Helvetica Neue', Helvetica;font-size: 40px;"),
 
 )
 
@@ -52,6 +51,12 @@ ui <- fluidPage(
     # Sidebar
     sidebarLayout(
         sidebarPanel(
+          
+          
+          #text input
+          helpText("Note: while the data view will show only",
+         "the specified number of observations, the",
+         "summary will be based on the full dataset."),
             
             #select input age group
             selectInput("age_group",
@@ -90,16 +95,8 @@ server <- function(input, output, session) {
 #
 # Waiting screen
   waiter_show(html = waiting_screen, color = "#CC33FF")
-    Sys.sleep(5) # spin for 2 seconds
+    Sys.sleep(1) # display waiting screen for 8 seconds
     waiter_hide()
-    
- # call the waiter function (RIKKES TAKE)
-  #w <- Waiter$new()
-  #w$show() #show waiter
-  #Sys.sleep(2) # spin for 2 seconds
-  #w$hide() # hide when waiter is done
-  
-
     
 
 ### ----------- reactive function for age group ----------- ### 
