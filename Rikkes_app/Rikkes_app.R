@@ -8,18 +8,30 @@ pacman::p_load(shiny, # R shiny functions
        leaflet, # 
        waiter, # waiting screen package
        sf, # 
+       tidyverse,
        dplyr, #
        shinybusy, # 
        RColorBrewer, # predefined colour palette
-       readxl # read data
+       readxl, # read data
+       colourvalues # colour coding activities
        )
 
 ######################### Load data ###########################
 setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Cognitive Science/6th_semester/spatial_analytics/DiscoverAarhus")
-df <- read_excel("./data/cult_activities_aarhus.xls")
+#df <- read_excel("./data/cult_activities_aarhus.xls")
+df <- read_excel("./data/DiscoverAarhus.xlsx")
 df$latitude <- as.numeric(df$latitude)
 df$longitude <- as.numeric(df$longitude)
 
+
+df$col <- colour_values(df$type, palette = "rainbow_hcl")
+
+
+
+# df <- df %>% 
+#   mutate(color = case_when(str_detect(type, "Park/Garden") ~ "green",
+#                            str_detect(type, "museum") ~ "red",
+#                            TRUE ~ "a default"))
 
 
 # Dataframe containing fun facts
@@ -53,24 +65,24 @@ ui <- fluidPage(
         sidebarPanel(
           
           
-          #text input
-          helpText("Note: while the data view will show only",
-         "the specified number of observations, the",
-         "summary will be based on the full dataset."),
+          # Text input
+          helpText(h4("Welcome to the DiscoverAarhus app!"),
+         "This app will help you find fun activities in Aarhus.",
+         "Please use the filters to find your next fun activity."),
             
-            #select input age group
+            # select input age group
             selectInput("age_group",
                         "Select age group:",
                         choices = c(unique(df$group), unique(df$all_group)),
                         selected = unique(df$all_group)),
             
-            #select input for indoor or outdoor activity
-            selectInput("inside_outside",
+            # select input for indoor or outdoor activity
+            selectInput("indoor_outdoor",
                         "Select indoor or outdoor activity:",
-                        choices = c(unique(df$inside_outside), unique(df$all_in_out)),
+                        choices = c(unique(df$indoor_outdoor), unique(df$all_in_out)),
                         selected = unique(df$all_in_out)),
             
-            #select input for activity category
+            # select input for activity category
             selectInput("activity_category",
                         "Select activity category:",
                         choices = c(unique(df$type), unique(df$all_type)),
@@ -88,7 +100,7 @@ ui <- fluidPage(
 
 
 
-# Define server logic required to draw a histogram
+# Define server logic displaying the leaflet map appropriately 
 server <- function(input, output, session) {
     
     
@@ -105,15 +117,15 @@ server <- function(input, output, session) {
   })
 
   observeEvent(AGE_GROUP_and_INSIDE_OUTSIDE(), {
-    choices <- c(unique(AGE_GROUP_and_INSIDE_OUTSIDE()$inside_outside),  unique(AGE_GROUP_and_INSIDE_OUTSIDE()$all_in_out))
-    updateSelectInput(session, inputId = "inside_outside", choices = choices, selected = unique(df$all_in_out)) 
+    choices <- c(unique(AGE_GROUP_and_INSIDE_OUTSIDE()$indoor_outdoor),  unique(AGE_GROUP_and_INSIDE_OUTSIDE()$all_in_out))
+    updateSelectInput(session, inputId = "indoor_outdoor", choices = choices, selected = unique(df$all_in_out)) 
   })
   
   
 ### ----------- reactive function for indoor/outdoor  ----------- ### 
   INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY <- reactive({
-    req(input$inside_outside)
-    filter(AGE_GROUP_and_INSIDE_OUTSIDE(), inside_outside == input$inside_outside | all_in_out== input$inside_outside)
+    req(input$indoor_outdoor)
+    filter(AGE_GROUP_and_INSIDE_OUTSIDE(), indoor_outdoor == input$indoor_outdoor | all_in_out== input$indoor_outdoor)
   })
   observeEvent(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY(), {
     choices <- c(unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$type),  unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$all_type))
@@ -141,10 +153,11 @@ server <- function(input, output, session) {
       setView(lng = 10.2131012, lat = 56.1557451, zoom = 13) %>%
           addCircleMarkers(lat = ~latitude, lng = ~longitude,
                            #color = ~pal(Type), # determines color based on type of activity
-                        color = brewer.pal(n = 6, name = "Dark2"),
+                        color = df$col, #does the trick with unique colour coding (palettes are ugly)
+                        #color =brewer.pal(length(unique(df$type)), name = "Dark2"),
                        radius = 7,
                        fillOpacity=0.8,
-                       popup = paste0(" ", ACTIVITY_CATEGORY_end()$placename,  "<br>",#vil gerne have med FED h2()
+                       popup = paste0(" ", ACTIVITY_CATEGORY_end()$name,  "<br>",#vil gerne have med FED h2()
                                      " ", ACTIVITY_CATEGORY_end()$type,  "<br>",
                                   "  ", ACTIVITY_CATEGORY_end()$description, "<br>")) 
   })
