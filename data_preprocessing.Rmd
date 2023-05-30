@@ -23,6 +23,7 @@ library(sf)
 library(leaflet)
 library(readxl)
 library(googlesheets4)
+library(tidyverse)
 ```
 
 
@@ -68,14 +69,14 @@ create_sf <- function(df, name, geo, act_type, description, indoor_outdoor, grou
 name <- df[[name]]
 geometry <- df[[geo]]
 type <- rep(act_type, length(geometry))
-type_all <- 'Show all'
+all_type <- 'Show all'
 description <- rep(description, length(geometry))
 group <- rep(group, length(geometry))
-group_all <- 'Show all'
+all_group<- 'Show all'
 indoor_outdoor<- rep(indoor_outdoor, length(geometry))
-in_out_all <- 'Show all'
+all_in_out <- 'Show all'
 
-df_new <- data.frame(name, geometry, type, type_all, description, group, group_all, indoor_outdoor, in_out_all)
+df_new <- data.frame(name, geometry, type, all_type, description, group, all_group, indoor_outdoor, all_in_out)
 
 df_sf <- st_as_sf(df_new)
 
@@ -143,32 +144,66 @@ df_multipoints <- cbind(df_multipoints, multi_coords)
 df_multipoints <- subset(df_multipoints, select = -c(L1))
 
 df_all <- rbind(df_points, df_multipoints)
+
+df_all <- df_all %>% 
+  rename(longitude = X,
+         latitude = Y)
 ```
 
 ```{r}
 excel_data <- read_excel("./data/DiscoverAarhus.xlsx")
 
-excel_data <- excel_data[, c("name", "type", "type_all", "description", "group", "group_all", "indoor_outdoor", "in_out_all", "X", "Y", "geometry")]
+#excel_data <- excel_data[, c("name", "type", "type_all", "description", "group", "group_all", "indoor_outdoor", "in_out_all", "longitude", "latitude", "geometry")]
 
 excel_data <- excel_data %>% 
   drop_na()
 
-excel_sf <- st_as_sf(x = excel_data, coords=c("X", "Y"), crs = 4326)
+excel_sf <- st_as_sf(x = excel_data, coords=c("longitude", "latitude"), crs = 4326)
 
 own_data_coords <- st_coordinates(excel_sf)
 
 excel_sf <- cbind(excel_sf, own_data_coords)
 
 df_all <- rbind(df_all, excel_sf)
+
+df_all <- df_all %>% 
+  rename(longitude = X,
+         latitude = Y)
 ```
 
+```{r}
+write_csv(df_all, 'data/final_data.csv')
+```
 
 
 ## map that adds all points and polygons
 ```{r}
 c <- leaflet() %>%
   addTiles() %>%  # Add default OpenStreetMap map tiles
-  addMarkers(lng=df_all$X, lat=df_all$Y, popup = df_all$name, clusterOptions = markerClusterOptions()) %>%
+  addMarkers(lng=df_all$longitude, lat=df_all$latitude, popup = paste0('<b>', df_all$name,'</b>','<br/>', '<i>',  df_all$description, '</i>'), clusterOptions = markerClusterOptions()) %>%
+  addPolygons(data = df_polygons, label = df_polygons$name)
+c  # Print the map
+```
+
+```{r}
+test <- st_read('data/geojson_files/postdistrikter.json')
+
+test <- test %>% 
+  st_transform(crs = 4326)
+
+zipcodes <- c(8000, 8200, 8210, 8220, 8230, 8240, 8250, 8260, 8270)
+
+test_real <- test %>% 
+  filter(postnummer %in% zipcodes)
+```
+
+```{r}
+hej <- st_intersection(df_all, test_real)
+```
+```{r}
+c <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=hej$longitude, lat=hej$latitude, popup = paste0('<b>', hej$name,'</b>','<br/>', '<i>',  hej$description, '</i>'), clusterOptions = markerClusterOptions()) %>%
   addPolygons(data = df_polygons, label = df_polygons$name)
 c  # Print the map
 ```
@@ -176,12 +211,9 @@ c  # Print the map
 
 noter:
 
-- add markerClustering!
 - awesomeMarkers? ændre på marker type
 - indlæse flere geojson files
   skal evt ikke bruges
 - indlæse excel ark med data punkter
 - hvordan fungerer det ift. polygoner og shiny app
-
-
-
+- når excel ark skal importeres til shiny app, hvordan skal formatet så helst være?
