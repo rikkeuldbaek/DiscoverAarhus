@@ -1,37 +1,132 @@
 # Discover Aarhus using Shiny App
-# Authors: Louise Brix Pilegaard Hansen and Rikke Uldbæk (202007501)
+# Authors: Louise Brix Pilegaard Hansen (202006093) and Rikke Uldbæk (202007501)
 # Date: 7th of June 2023
 
 
 ######################### Load packages ###########################
 pacman::p_load(shiny, # R shiny functions
-       leaflet, # 
+       leaflet, # map package
        waiter, # waiting screen package
-       sf, # 
-       tidyverse,
-       dplyr, #
-       shinybusy, # 
+       tidyverse, #data wrangling
+       dplyr, # data wrangling
        RColorBrewer, # predefined colour palette
        readxl, # read data
-       colourvalues # colour coding activities
+       colourvalues, # color coding
+       fontawesome
        )
 
 ######################### Load data ###########################
 setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Cognitive Science/6th_semester/spatial_analytics/DiscoverAarhus")
 #df <- read_excel("./data/cult_activities_aarhus.xls")
+
+#df <- read_csv("./data/final_data.csv")
 df <- read_excel("./data/DiscoverAarhus.xlsx")
+
 df$latitude <- as.numeric(df$latitude)
 df$longitude <- as.numeric(df$longitude)
 
 
-df$col <- colour_values(df$type, palette = "rainbow_hcl")
+# create color values
+df$col <- colour_values(df$type,
+                        palette = "rainbow_hcl")
 
 
+#get different color palettes
+colour_palettes()
 
 # df <- df %>% 
 #   mutate(color = case_when(str_detect(type, "Park/Garden") ~ "green",
-#                            str_detect(type, "museum") ~ "red",
+#                            str_detect(type, "Museum") ~ "red",
 #                            TRUE ~ "a default"))
+
+sort(unique(df$type))
+
+# named list of awesome icons
+logos <- awesomeIconList(
+  "Beach" = makeAwesomeIcon(
+    text= fa("umbrella-beach"),
+    markerColor = "beige",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Church" = makeAwesomeIcon(
+    text = fa("church"),
+    markerColor = "white",
+    iconColor = "#111112",
+    library = "fa"
+  ),
+  "Cinema" = makeAwesomeIcon(
+    icon = "film",
+    markerColor = "red",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Cultural center" = makeAwesomeIcon(
+    icon = "compass",
+    markerColor = "gray",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Entertainment" = makeAwesomeIcon(
+    text= fa("icons"),
+    markerColor = "orange",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Marina" = makeAwesomeIcon(
+    icon = "anchor",
+    markerColor = "darkblue",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Museum" = makeAwesomeIcon(
+    text = fa("building-columns"),
+    markerColor = "purple",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Park" = makeAwesomeIcon(
+    icon = "tree",
+    markerColor = "green",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Sport and fitness" = makeAwesomeIcon(
+    text = fa("person-running"),
+    markerColor = "lightgreen",
+    iconColor = "#111112",
+    library = "fa"
+  ),
+  "Theater" = makeAwesomeIcon(
+    text= fa("masks-theater"),
+    markerColor = "darkpurple",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Venue" = makeAwesomeIcon(
+    icon = "music",
+    markerColor = "black",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Wellness" = makeAwesomeIcon(
+    text = fa("spa"),
+    markerColor = "lightgray",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "?" = makeAwesomeIcon(
+    icon = "spa",
+    markerColor = "lightgreen",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  )
+
+
+)
+ 
+
+
 
 
 # Dataframe containing fun facts
@@ -40,8 +135,8 @@ text_for_waiting_screen <- data.frame(text= c("Let's discover Aarhus!",  "Are yo
 # Specifying details of waiting screen
 waiting_screen <- tagList(
   spin_loaders(21), # define spinner
-  h3(text_for_waiting_screen$text[1], style = "color:#FFFFFF;font-weight: 50;font-family: 'Helvetica Neue', Helvetica;font-size: 40px;"),
-  h3(text_for_waiting_screen$text[2], style = "color:#FFFFFF;font-weight: 50;font-family: 'Helvetica Neue', Helvetica;font-size: 40px;"),
+  h3(text_for_waiting_screen$text[1], style = "color:#FFFFFF;font-weight: 50;font-family: 'Helvetica Neue', Helvetica;font-size: 30px;"),
+  h3(text_for_waiting_screen$text[2], style = "color:#FFFFFF;font-weight: 50;font-family: 'Helvetica Neue', Helvetica;font-size: 30px;"),
 
 )
 
@@ -53,12 +148,13 @@ waiting_screen <- tagList(
 #################### UI and server function ####################
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-    
-  useWaiter(), #insert picture of aarhus #    "#99CCFF"
+  
+  # Initialize waiter
+  useWaiter(),
 
 
     # Application title
-    titlePanel("Discover Aarhus"),
+    titlePanel("DiscoverAarhus"),
 
     # Sidebar
     sidebarLayout(
@@ -67,8 +163,8 @@ ui <- fluidPage(
           
           # Text input
           helpText(h4("Welcome to the DiscoverAarhus app!"),
-         "This app will help you find fun activities in Aarhus.",
-         "Please use the filters to find your next fun activity."),
+         "This app will help you explore fun activities in Aarhus.",
+         "Please use the filters to find your next activity."),
             
             # select input age group
             selectInput("age_group",
@@ -90,6 +186,8 @@ ui <- fluidPage(
             
         ), #sidebar panel end
 
+        
+  # Main panel - map output      
    mainPanel(
         # create map using leaflet
            leafletOutput(outputId = 'map'))
@@ -104,9 +202,10 @@ ui <- fluidPage(
 server <- function(input, output, session) {
     
     
-#
 # Waiting screen
-  waiter_show(html = waiting_screen, color = "#CC33FF")
+  #waiter_show(html = waiting_screen, color = "#CC33FF")
+  waiter_show(html = waiting_screen,
+              image = "https://media.cnn.com/api/v1/images/stellar/prod/190410133420-01-aarhus-denmark.jpg?q=x_0,y_0,h_2772,w_4926,c_fill/h_720,w_1280/f_webp")
     Sys.sleep(1) # display waiting screen for 8 seconds
     waiter_hide()
     
@@ -144,6 +243,9 @@ server <- function(input, output, session) {
     #pal <- colorFactor(unique(data$col_type), unique(data$Type))  #DET HER SKAL IMPLEMENTERES NÅR VI HAR ALT DATA
     
  
+ 
+
+
 
  
 # Leaflet map    
@@ -151,17 +253,29 @@ server <- function(input, output, session) {
     leaflet(ACTIVITY_CATEGORY_end()) %>%
       addTiles() %>%
       setView(lng = 10.2131012, lat = 56.1557451, zoom = 13) %>%
-          addCircleMarkers(lat = ~latitude, lng = ~longitude,
-                           #color = ~pal(Type), # determines color based on type of activity
-                        color = df$col, #does the trick with unique colour coding (palettes are ugly)
-                        #color =brewer.pal(length(unique(df$type)), name = "Dark2"),
-                       radius = 7,
-                       fillOpacity=0.8,
-                       popup = paste0(" ", ACTIVITY_CATEGORY_end()$name,  "<br>",#vil gerne have med FED h2()
-                                     " ", ACTIVITY_CATEGORY_end()$type,  "<br>",
-                                  "  ", ACTIVITY_CATEGORY_end()$description, "<br>")) 
+      addAwesomeMarkers(lat = ~latitude, lng = ~longitude, icon= ~ logos[ACTIVITY_CATEGORY_end()$type],
+                        popup= paste(paste("<h4>", ACTIVITY_CATEGORY_end()$name, "</h4>"),
+                                   paste("<strong>",ACTIVITY_CATEGORY_end()$type, "</strong>"), "<br>",
+                                   paste("<em>",ACTIVITY_CATEGORY_end()$description, "</em>"))
+                        )
+      
+      
+          # addCircleMarkers(lat = ~latitude, lng = ~longitude,
+          #                  #color = ~pal(Type), # determines color based on type of activity
+          #               color = df$col, #does the trick with unique color coding (palettes are ugly)
+          #               #color =brewer.pal(length(unique(df$type)), name = "Dark2"),
+          #              radius = 7,
+          #              fillOpacity=0.8,
+          #              popup= paste(paste("<h4>", ACTIVITY_CATEGORY_end()$name, "</h4>"),
+          #                           paste("<strong>",ACTIVITY_CATEGORY_end()$type, "</strong>"), "<br>",
+          #                           paste("<em>",ACTIVITY_CATEGORY_end()$description, "</em>"))
+          #               )
+    
+    
+    
   })
 }
+
 
 # Run the application 
 shinyApp(ui = ui, server = server)
