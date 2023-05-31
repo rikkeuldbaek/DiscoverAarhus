@@ -7,88 +7,26 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-#install.packages("leaflet")
-#install.packages("googlesheets4")
 ```
 
 ```{r}
-options(digits = 15)
-```
-
-```{r}
+# loading required packages
 library(sp)
 library(rgdal)
 library(sf)
 library(leaflet)
 library(readxl)
-library(writexl)
 library(googlesheets4)
 library(tidyverse)
+
+# set decimal digits
+options(digits = 15)
 ```
 
+# Load data from GeoJSON files
 
+Loading the GeoJSON data in the 'data/geojson_files' folder as simple features objects:
 
-## Read in GeoJSON data from OpenData
-
-```{r}
-playgrounds <- st_read("data/geojson_files/legepladser.json")
-```
-
-```{r}
-st_crs(playgrounds)
-```
-
-The EPSG of the playgrounds object is 25832. The CRS of leaflet is 4326, so we need to transform the coordinates
-
-```{r}
-playgrounds <- playgrounds %>% 
-  st_transform(crs = 4326)
-```
-
-Now leaflet and "playgrounds" have the same CRS and can be plotted:
-```{r}
-st_crs(playgrounds)
-```
-
-```{r}
-coords_playground <- st_coordinates(playgrounds)
-
-c <- leaflet() %>%
-  addTiles() %>%  # Add default OpenStreetMap map tiles
-  addMarkers(lng=coords_playground[, 1], lat=coords_playground[, 2], popup = playgrounds$lokation)
-c  # Print the map
-```
-
-
-## Load GeoJSon files
-```{r}
-create_sf <- function(df, name, geo, act_type, description, indoor_outdoor, group){
-
-#df <- st_read(paste0('data/geojson_files/', geo_json))
-
-name <- df[[name]]
-geometry <- df[[geo]]
-type <- rep(act_type, length(geometry))
-all_type <- 'Show all'
-description <- rep(description, length(geometry))
-group <- rep(group, length(geometry))
-all_group<- 'Show all'
-indoor_outdoor<- rep(indoor_outdoor, length(geometry))
-all_in_out <- 'Show all'
-
-df_new <- data.frame(name, geometry, type, all_type, description, group, all_group, indoor_outdoor, all_in_out)
-
-df_sf <- st_as_sf(df_new)
-
-df_sf <- df_sf %>% 
- st_transform(crs = 4326)
-
-return(df_sf)
-}
-```
-
-# load as dataframes to see their column names
 ```{r}
 playgrounds_json <- st_read('data/geojson_files/legepladser.json')
 
@@ -98,122 +36,171 @@ shelters_json <- st_read('data/geojson_files/shelter.json')
 
 climbing_json <- st_read('data/geojson_files/træklatring.json')
 
-# de her to skal der måske filtreres lidt i? er pt. ikke med i datasettet, da mange af punkterne måske lægger udenfor vores grænse
 forests_json <- st_read('data/geojson_files/store_skove.json')
 
 firepits_json <- st_read('data/geojson_files/bålpladser.json')
 ```
+The JSON files do not all have the same column names and contents. Therefore, we need to extract the necessary information based on the column names. This function does that, as well as adding a description, type of activity, age group and whether it is indoor or outdoor for each of the JSON frames to be used for the final map.
 
 ```{r}
-head(playgrounds_json)
-head(free_fitness_json)
-head(shelters_json)
-head(climbing_json)
+create_sf <- function(df, name, act_type, description, indoor_outdoor, group){
+
+  # save name of location based on column that contains this info
+  name <- df[[name]]
+
+  # save geometry type 
+  geometry <- df$geometry
+
+  # create activity type column
+  type <- rep(act_type, length(geometry))
+  
+  # add constant dummy value for ShinyApp purposes
+  all_type <- 'Show all'
+  
+  # add description column
+  description <- rep(description, length(geometry))
+  
+  # add age group
+  group <- rep(group, length(geometry))
+  all_group<- 'Show all'
+  
+  # add indoor or outdoor column
+  indoor_outdoor<- rep(indoor_outdoor, length(geometry))
+  all_in_out <- 'Show all'
+
+  # gather df with new columns
+  df_new <- data.frame(name, geometry, type, all_type, description, group, all_group, indoor_outdoor, all_in_out)
+
+  # convert to simple feature
+  df_sf <- st_as_sf(df_new)
+
+  # transform the CRS to be the same as leaflet's 
+  df_sf <- df_sf %>% 
+    st_transform(crs = 4326)
+
+return(df_sf)
+}
 ```
 
-Based on the column names, create new dataframes
+### Check column names
 
 ```{r}
-playgrounds <- create_sf(playgrounds_json, 'lokation', 'geometry', 'Playground', 'Outdoor playground', 'Outdoor', 'Children')
-
-outdoor_fitness <- create_sf(free_fitness_json, 'navn', 'geometry', 'Exercise','Outdoor fitness facilities', 'Outdoor', 'Adults')
-
-shelters <- create_sf(shelters_json, 'navn', 'geometry', 'Shelter', 'Outdoor shelter', 'Outdoor', 'Both children and adults')
-
-tree_climbing <- create_sf(climbing_json, 'navn', 'geometry', 'Tree climbing', 'Climbing', 'Outdoor', 'Both children and adults')
+glimpse(playgrounds_json)
+glimpse(free_fitness_json)
+glimpse(shelters_json)
+glimpse(climbing_json)
+glimpse(forests_json)
+glimpse(firepits_json)
 ```
 
-Most of the created sf objects are of class 'POINT', but two objects, outdoor_fitness and tree_climbing are multipoints and multipolygons. 
+### Based on the column names, create new dataframes
 ```{r}
-st_geometry(outdoor_fitness)
-st_geometry(tree_climbing)
+playgrounds <- create_sf(playgrounds_json, 'lokation', 'Playground', 'Outdoor playground', 'Outdoor', 'Children')
+
+outdoor_fitness <- create_sf(free_fitness_json, 'navn', 'Sport and fitness','Outdoor fitness facilities', 'Outdoor', 'Adults')
+
+shelters <- create_sf(shelters_json, 'navn', 'Shelter', 'Outdoor shelter', 'Outdoor', 'Both children and adults')
+
+tree_climbing <- create_sf(climbing_json, 'navn', 'Sport and fitness', 'Tree climbing', 'Outdoor', 'Both children and adults')
+
+forests <- create_sf(forests_json, 'navn', 'Nature', 'Forest', 'Outdoor', 'Both children and adults')
+
+firepits <- create_sf(firepits_json, 'navn', 'Nature', 'Bonfire pits in forest', 'Outdoor', 'Both children and adults')
 ```
 
-In order to get them all to be the same geometry, points, we divide the sf objects into two dataframes.
+## Cast all objects to 'POINTS'
 
-For some reason, the outdoor_fitness data is set as geometry type multipoint, even though it is only one point. This converts them into points
-```{r}
-df_points <- rbind(playgrounds, shelters, outdoor_fitness)
+When the data was loaded, we could see that most of the created sf objects were of class 'POINT', but three objects, outdoor_fitness, forests and tree_climbing are multipoints and multipolygons.
 
+In order to get them all to be the same geometry, points, we divide the sf objects into two dataframes; one for points and one for polygons.
+
+For some reason, the outdoor_fitness data is set as geometry type 'MULTIPOINT', even though it is only one point. We convert them into points instead:
+
+```{r warning=FALSE}
+# create dataframe from all points and multipoints objects
+df_points <- rbind(playgrounds, shelters, outdoor_fitness, firepits)
+
+# cast points+multipoints objects to 'POINTS' geometry
 df_points <- st_cast(df_points, 'POINT')
 ```
 
+To plot all points nicely on a leaflet map, we need to create a point to represent the polygons in our data. To do so, we calculate a geometric center of our polygons by using the st_centroid function.
 
-```{r}
-df_polygons <- tree_climbing
+```{r warning=FALSE}
+# this is necessary to be able to calculate the centroids
+sf_use_s2(FALSE)
 
+# gather polygon objects
+df_polygons <- rbind(tree_climbing, forests)
+
+# calculate centroid for each object
 df_polygons <- st_centroid(df_polygons)
-coords_poly <- st_coordinates(df_polygons)
-
-df_polygons <- cbind(df_polygons, coords_poly)
-
 ```
 
+All the datapoints are now represented as the 'POINT' geometry.
 
-# extract coordinates from points and polygons and bind them together to one dataframe 
+# Add our own excel data
 ```{r}
-points_coords <- st_coordinates(df_points)
-
-#multi_coords <- st_coordinates(df_multipoints)
-
-df_points <- cbind(df_points, points_coords)
-
-#df_multipoints <- cbind(df_multipoints, multi_coords)
-
-#df_multipoints <- subset(df_multipoints, select = -c(L1))
-
-df_all <- rbind(df_points, df_polygons)
-
-#df_all <- df_all %>% 
- # rename(longitude = X,
-  #       latitude = Y)
-```
-
-```{r}
+# read excel file with own Aarhus datapoints
 excel_data <- read_excel("./data/DiscoverAarhus.xlsx")
 
-#excel_data <- excel_data[, c("name", "type", "type_all", "description", "group", "group_all", "indoor_outdoor", "in_out_all", "longitude", "latitude", "geometry")]
-
+# DELETE!
 excel_data <- excel_data %>% 
   drop_na()
 
-excel_sf <- st_as_sf(x = excel_data, coords=c("longitude", "latitude"), crs = 4326)
+# convert the excel dataframe to a sf object and set CRS
+excel_sf <- st_as_sf(x = excel_data, coords=c("longitude", "latitude"), crs = 4326) # use longitude and latitude columns as geometry
+```
 
-own_data_coords <- st_coordinates(excel_sf)
+```{r}
+# add all data together
+df_all <- rbind(df_points, df_polygons, excel_sf)
+```
 
-excel_sf <- cbind(excel_sf, own_data_coords)
+To plot the points in leaflet, we need to extract the longitude and latitude from the geometries.
 
-df_all <- rbind(df_all, excel_sf)
+```{r}
+# extract coordinates from geometries column
+coords <- st_coordinates(df_all)
 
+# add coordinates and rename columns to longitude and latitude
 df_all <- df_all %>% 
+  cbind(coords) %>% 
   rename(longitude = X,
          latitude = Y)
 ```
 
-```{r}
+
+# Filter data by Postdistrikter
+
+The current datapoints cover all of Aarhus Kommune. We are only interested in activities in the more central parts of Aarhus, so we need to do some filtering. 
+
+```{r warning=FALSE}
+# read GeoJSON file containing polygons of postal districts
 postdistrikter <- st_read('data/geojson_files/postdistrikter.json')
 
+# transform CRS to match the other data
 postdistrikter <- postdistrikter %>% 
   st_transform(crs = 4326)
 
+# save the zipcodes we want to keep. These are all zipcodes of places close to Aarhus center. They are Aarhus C, Aarhus N, Aarhus V, Brabrand, Åbyhøj, Risskov, Egå, Viby J and Højbjerg.
 zipcodes <- c(8000, 8200, 8210, 8220, 8230, 8240, 8250, 8260, 8270)
 
+# filter by saved zipcodes
 postdistrikter <- postdistrikter %>% 
   filter(postnummer %in% zipcodes)
 
+# find all points that intersects the chosen postal districs
 df_all_bounded <- st_intersection(df_all, postdistrikter)
+```
 
+
+```{r}
+# remove unnecessary columns
 df_all_bounded <- subset(df_all_bounded, select = -c(nr_dist, postdistrikt, postnummer, mi_style, mi_prinx, geometry))
-```
 
-
-```{r}
+# save to csv to be imported in ShinyApp script
 write_csv(df_all_bounded, 'data/final_data.csv')
-```
-
-
-```{r}
-testerrrrr <- read_csv('data/final_data.csv')
 ```
 
 
@@ -221,73 +208,7 @@ testerrrrr <- read_csv('data/final_data.csv')
 ```{r}
 c <- leaflet() %>%
   addTiles() %>%  # Add default OpenStreetMap map tiles
-  addMarkers(lng=df_all$longitude, lat=df_all$latitude, popup = paste0('<b>', df_all$name,'</b>','<br/>', '<i>',  df_all$description, '</i>'), clusterOptions = markerClusterOptions()) %>%
-  addPolygons(data = df_polygons, label = df_polygons$name)
+  addMarkers(lng=df_all_bounded$longitude, lat=df_all_bounded$latitude, popup = paste0('<b>', df_all_bounded$name,'</b>','<br/>', '<i>',  df_all_bounded$description, '</i>'))
 c  # Print the map
 ```
 
-```{r}
-test <- st_read('data/geojson_files/postdistrikter.json')
-
-test <- test %>% 
-  st_transform(crs = 4326)
-
-zipcodes <- c(8000, 8200, 8210, 8220, 8230, 8240, 8250, 8260, 8270)
-
-test_real <- test %>% 
-  filter(postnummer %in% zipcodes)
-```
-
-```{r}
-hej <- st_intersection(df_all, test_real)
-```
-```{r}
-c <- leaflet() %>%
-  addTiles() %>%  # Add default OpenStreetMap map tiles
-  addMarkers(lng=hej$longitude, lat=hej$latitude, popup = paste0('<b>', hej$name,'</b>','<br/>', '<i>',  hej$description, '</i>'), clusterOptions = markerClusterOptions()) %>%
-  addPolygons(data = df_polygons, label = df_polygons$name)
-c  # Print the map
-```
-
-```{r}
-testy <- read_csv('data/final_data.csv')
-
-df_test <- st_cast(df_all)
-
-st_write(df_test, 'data/test.shp')
-```
-
-```{r}
-testerr <- st_centroid(df_polygons)
-coords_test <- st_coordinates(testerr)
-
-df_polygons <- cbind(df_polygons, coords_test)
-
-df_polygons <- df_polygons %>% 
-  rename(longitude = X,
-         latitude = Y)
-
-df_all_poly <- rbind(df_all, df_polygons)
-```
-
-```{r}
-c <- leaflet() %>%
-  addTiles() %>%  # Add default OpenStreetMap map tiles
-  addMarkers(lng=df_all$longitude, lat=df_all$latitude, popup = paste0('<b>', df_all$name,'</b>','<br/>', '<i>',  df_all$description, '</i>'), clusterOptions = markerClusterOptions()) %>%
-  addPolygons(data = df_all[148:152, ], label = df_all$name)
-c
-```
-
-```{r}
-
-```
-
-
-noter:
-
-- awesomeMarkers? ændre på marker type
-- indlæse flere geojson files
-  skal evt ikke bruges
-- indlæse excel ark med data punkter
-- hvordan fungerer det ift. polygoner og shiny app
-- når excel ark skal importeres til shiny app, hvordan skal formatet så helst være?
