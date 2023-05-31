@@ -115,6 +115,12 @@ logos <- awesomeIconList(
     iconColor = "#f5f5f7",
     library = "fa"
   ),
+  "Library" = makeAwesomeIcon(
+    text = fa("book"),
+    markerColor = "lightblue",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
   "?" = makeAwesomeIcon(
     icon = "spa",
     markerColor = "lightgreen",
@@ -194,6 +200,7 @@ ui <- fluidPage(
   
     ) #sidebar layoyt end
 ) #fluid page end
+
 
 
 
