@@ -22,6 +22,7 @@ library(rgdal)
 library(sf)
 library(leaflet)
 library(readxl)
+library(writexl)
 library(googlesheets4)
 library(tidyverse)
 ```
@@ -122,32 +123,50 @@ shelters <- create_sf(shelters_json, 'navn', 'geometry', 'Shelter', 'Outdoor she
 tree_climbing <- create_sf(climbing_json, 'navn', 'geometry', 'Tree climbing', 'Climbing', 'Outdoor', 'Both children and adults')
 ```
 
-Points, multipoints and polygons can't all be plotted together, so we need to make seperate dataframes
+Most of the created sf objects are of class 'POINT', but two objects, outdoor_fitness and tree_climbing are multipoints and multipolygons. 
 ```{r}
-df_points <- rbind(playgrounds, shelters)
-
-df_multipoints <- outdoor_fitness
-  
-df_polygons <- tree_climbing
+st_geometry(outdoor_fitness)
+st_geometry(tree_climbing)
 ```
 
-# extract coordinates from points and multipoints and bind them together to one dataframe 
+In order to get them all to be the same geometry, points, we divide the sf objects into two dataframes.
+
+For some reason, the outdoor_fitness data is set as geometry type multipoint, even though it is only one point. This converts them into points
+```{r}
+df_points <- rbind(playgrounds, shelters, outdoor_fitness)
+
+df_points <- st_cast(df_points, 'POINT')
+```
+
+
+```{r}
+df_polygons <- tree_climbing
+
+df_polygons <- st_centroid(df_polygons)
+coords_poly <- st_coordinates(df_polygons)
+
+df_polygons <- cbind(df_polygons, coords_poly)
+
+```
+
+
+# extract coordinates from points and polygons and bind them together to one dataframe 
 ```{r}
 points_coords <- st_coordinates(df_points)
 
-multi_coords <- st_coordinates(df_multipoints)
+#multi_coords <- st_coordinates(df_multipoints)
 
 df_points <- cbind(df_points, points_coords)
 
-df_multipoints <- cbind(df_multipoints, multi_coords)
+#df_multipoints <- cbind(df_multipoints, multi_coords)
 
-df_multipoints <- subset(df_multipoints, select = -c(L1))
+#df_multipoints <- subset(df_multipoints, select = -c(L1))
 
-df_all <- rbind(df_points, df_multipoints)
+df_all <- rbind(df_points, df_polygons)
 
-df_all <- df_all %>% 
-  rename(longitude = X,
-         latitude = Y)
+#df_all <- df_all %>% 
+ # rename(longitude = X,
+  #       latitude = Y)
 ```
 
 ```{r}
@@ -172,7 +191,29 @@ df_all <- df_all %>%
 ```
 
 ```{r}
-write_csv(df_all, 'data/final_data.csv')
+postdistrikter <- st_read('data/geojson_files/postdistrikter.json')
+
+postdistrikter <- postdistrikter %>% 
+  st_transform(crs = 4326)
+
+zipcodes <- c(8000, 8200, 8210, 8220, 8230, 8240, 8250, 8260, 8270)
+
+postdistrikter <- postdistrikter %>% 
+  filter(postnummer %in% zipcodes)
+
+df_all_bounded <- st_intersection(df_all, postdistrikter)
+
+df_all_bounded <- subset(df_all_bounded, select = -c(nr_dist, postdistrikt, postnummer, mi_style, mi_prinx, geometry))
+```
+
+
+```{r}
+write_csv(df_all_bounded, 'data/final_data.csv')
+```
+
+
+```{r}
+testerrrrr <- read_csv('data/final_data.csv')
 ```
 
 
@@ -206,6 +247,39 @@ c <- leaflet() %>%
   addMarkers(lng=hej$longitude, lat=hej$latitude, popup = paste0('<b>', hej$name,'</b>','<br/>', '<i>',  hej$description, '</i>'), clusterOptions = markerClusterOptions()) %>%
   addPolygons(data = df_polygons, label = df_polygons$name)
 c  # Print the map
+```
+
+```{r}
+testy <- read_csv('data/final_data.csv')
+
+df_test <- st_cast(df_all)
+
+st_write(df_test, 'data/test.shp')
+```
+
+```{r}
+testerr <- st_centroid(df_polygons)
+coords_test <- st_coordinates(testerr)
+
+df_polygons <- cbind(df_polygons, coords_test)
+
+df_polygons <- df_polygons %>% 
+  rename(longitude = X,
+         latitude = Y)
+
+df_all_poly <- rbind(df_all, df_polygons)
+```
+
+```{r}
+c <- leaflet() %>%
+  addTiles() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=df_all$longitude, lat=df_all$latitude, popup = paste0('<b>', df_all$name,'</b>','<br/>', '<i>',  df_all$description, '</i>'), clusterOptions = markerClusterOptions()) %>%
+  addPolygons(data = df_all[148:152, ], label = df_all$name)
+c
+```
+
+```{r}
+
 ```
 
 
