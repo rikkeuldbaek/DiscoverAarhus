@@ -103,9 +103,9 @@ shelters <- create_sf(shelters_json, 'navn', 'Shelter', 'Outdoor shelter', 'Outd
 
 tree_climbing <- create_sf(climbing_json, 'navn', 'Sport and fitness', 'Tree climbing', 'Outdoor', 'Both children and adults')
 
-forests <- create_sf(forests_json, 'navn', 'Nature', 'Forest', 'Outdoor', 'Both children and adults')
+forests <- create_sf(forests_json, 'navn', 'Forest', 'Forest', 'Outdoor', 'Both children and adults')
 
-firepits <- create_sf(firepits_json, 'navn', 'Nature', 'Bonfire pits in forest', 'Outdoor', 'Both children and adults')
+firepits <- create_sf(firepits_json, 'navn', 'Bonfire pits', 'Bonfire pit in forest', 'Outdoor', 'Both children and adults')
 ```
 
 ## Cast all objects to 'POINTS'
