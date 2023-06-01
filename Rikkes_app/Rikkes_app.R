@@ -11,14 +11,12 @@ pacman::p_load(shiny, # R shiny functions
        dplyr, # data wrangling
        RColorBrewer, # predefined colour palette
        readxl, # read data
-       colourvalues, # color coding
-       fontawesome
+       fontawesome # specify icons in logos
        )
 
 ######################### Load data ###########################
 setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Cognitive Science/6th_semester/spatial_analytics/DiscoverAarhus")
 #df <- read_excel("./data/cult_activities_aarhus.xls")
-
 #df <- read_csv("./data/final_data.csv")
 df <- read_excel("./data/DiscoverAarhus.xlsx")
 
@@ -26,22 +24,10 @@ df$latitude <- as.numeric(df$latitude)
 df$longitude <- as.numeric(df$longitude)
 
 
-# create color values
-df$col <- colour_values(df$type,
-                        palette = "rainbow_hcl")
-
-
-#get different color palettes
-colour_palettes()
-
-# df <- df %>% 
-#   mutate(color = case_when(str_detect(type, "Park/Garden") ~ "green",
-#                            str_detect(type, "Museum") ~ "red",
-#                            TRUE ~ "a default"))
-
+#find unique activities
 sort(unique(df$type))
 
-# named list of awesome icons
+# predefined logos with colors for markers
 logos <- awesomeIconList(
   "Beach" = makeAwesomeIcon(
     text= fa("umbrella-beach"),
@@ -93,8 +79,8 @@ logos <- awesomeIconList(
   ),
   "Sport and fitness" = makeAwesomeIcon(
     text = fa("person-running"),
-    markerColor = "lightgreen",
-    iconColor = "#111112",
+    markerColor = "lightblue",
+    iconColor = "#f5f5f7",
     library = "fa"
   ),
   "Theater" = makeAwesomeIcon(
@@ -117,38 +103,35 @@ logos <- awesomeIconList(
   ),
   "Library" = makeAwesomeIcon(
     text = fa("book"),
-    markerColor = "lightblue",
-    iconColor = "#f5f5f7",
+    markerColor = "lightgreen",
+    iconColor = "#111112",
     library = "fa"
   ),
   "?" = makeAwesomeIcon(
     icon = "spa",
-    markerColor = "lightgreen",
+    markerColor = "#f0f00c",
     iconColor = "#f5f5f7",
     library = "fa"
   )
-
-
 )
  
+#### icons
+#https://fontawesome.com/search?q=libra&o=r&m=free
+#### colors
+# https://stackoverflow.com/questions/59789918/how-to-get-the-colours-i-want-with-leaflet-awesomemarkers 
 
 
 
-
-# Dataframe containing fun facts
+# Text for waiting screen
 text_for_waiting_screen <- data.frame(text= c("Let's discover Aarhus!",  "Are you ready?")) 
 
-# Specifying details of waiting screen
+# Define spinner and text for waiting screen
 waiting_screen <- tagList(
   spin_loaders(21), # define spinner
   h3(text_for_waiting_screen$text[1], style = "color:#FFFFFF;font-weight: 50;font-family: 'Helvetica Neue', Helvetica;font-size: 30px;"),
   h3(text_for_waiting_screen$text[2], style = "color:#FFFFFF;font-weight: 50;font-family: 'Helvetica Neue', Helvetica;font-size: 30px;"),
-
 )
 
-
-#COOOOOL SPINNERS!!!!
-#https://shiny.john-coene.com/waiter/
 
 
 #################### UI and server function ####################
@@ -223,7 +206,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(AGE_GROUP_and_INSIDE_OUTSIDE(), {
-    choices <- c(unique(AGE_GROUP_and_INSIDE_OUTSIDE()$indoor_outdoor),  unique(AGE_GROUP_and_INSIDE_OUTSIDE()$all_in_out))
+    choices <- c(sort(unique(AGE_GROUP_and_INSIDE_OUTSIDE()$indoor_outdoor)),  unique(AGE_GROUP_and_INSIDE_OUTSIDE()$all_in_out))
     updateSelectInput(session, inputId = "indoor_outdoor", choices = choices, selected = unique(df$all_in_out)) 
   })
   
@@ -234,7 +217,7 @@ server <- function(input, output, session) {
     filter(AGE_GROUP_and_INSIDE_OUTSIDE(), indoor_outdoor == input$indoor_outdoor | all_in_out== input$indoor_outdoor)
   })
   observeEvent(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY(), {
-    choices <- c(unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$type),  unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$all_type))
+    choices <- c(sort(unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$type)),  unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$all_type))
     updateSelectInput(session, inputId = "activity_category", choices = choices, selected = unique(df$all_type))
   })
   
@@ -245,14 +228,6 @@ server <- function(input, output, session) {
    })
  
  
-
-# Construct palette from type of activity
-    #pal <- colorFactor(unique(data$col_type), unique(data$Type))  #DET HER SKAL IMPLEMENTERES NÅR VI HAR ALT DATA
-    
- 
- 
-
-
 
  
 # Leaflet map    
@@ -265,20 +240,6 @@ server <- function(input, output, session) {
                                    paste("<strong>",ACTIVITY_CATEGORY_end()$type, "</strong>"), "<br>",
                                    paste("<em>",ACTIVITY_CATEGORY_end()$description, "</em>"))
                         )
-      
-      
-          # addCircleMarkers(lat = ~latitude, lng = ~longitude,
-          #                  #color = ~pal(Type), # determines color based on type of activity
-          #               color = df$col, #does the trick with unique color coding (palettes are ugly)
-          #               #color =brewer.pal(length(unique(df$type)), name = "Dark2"),
-          #              radius = 7,
-          #              fillOpacity=0.8,
-          #              popup= paste(paste("<h4>", ACTIVITY_CATEGORY_end()$name, "</h4>"),
-          #                           paste("<strong>",ACTIVITY_CATEGORY_end()$type, "</strong>"), "<br>",
-          #                           paste("<em>",ACTIVITY_CATEGORY_end()$description, "</em>"))
-          #               )
-    
-    
     
   })
 }
@@ -286,4 +247,5 @@ server <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
 
