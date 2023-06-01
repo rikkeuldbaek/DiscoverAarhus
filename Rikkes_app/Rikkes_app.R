@@ -9,7 +9,6 @@ pacman::p_load(shiny, # R shiny functions
        waiter, # waiting screen package
        tidyverse, #data wrangling
        dplyr, # data wrangling
-       RColorBrewer, # predefined colour palette
        readxl, # read data
        fontawesome # specify icons in logos
        )
@@ -206,7 +205,7 @@ server <- function(input, output, session) {
   })
 
   observeEvent(AGE_GROUP_and_INSIDE_OUTSIDE(), {
-    choices <- c(sort(unique(AGE_GROUP_and_INSIDE_OUTSIDE()$indoor_outdoor)),  unique(AGE_GROUP_and_INSIDE_OUTSIDE()$all_in_out))
+    choices <- c(unique(AGE_GROUP_and_INSIDE_OUTSIDE()$indoor_outdoor),  unique(AGE_GROUP_and_INSIDE_OUTSIDE()$all_in_out))
     updateSelectInput(session, inputId = "indoor_outdoor", choices = choices, selected = unique(df$all_in_out)) 
   })
   
