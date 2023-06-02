@@ -16,8 +16,8 @@ pacman::p_load(shiny, # R shiny functions
 ######################### Load data ###########################
 setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Cognitive Science/6th_semester/spatial_analytics/DiscoverAarhus")
 #df <- read_excel("./data/cult_activities_aarhus.xls")
-#df <- read_csv("./data/final_data.csv")
-df <- read_excel("./data/DiscoverAarhus.xlsx")
+df <- read_csv("./data/final_data.csv")
+#df <- read_excel("./data/DiscoverAarhus.xlsx")
 
 df$latitude <- as.numeric(df$latitude)
 df$longitude <- as.numeric(df$longitude)
@@ -71,7 +71,7 @@ logos <- awesomeIconList(
     library = "fa"
   ),
   "Park" = makeAwesomeIcon(
-    icon = "tree",
+    text = fa("cloud-sun"),
     markerColor = "green",
     iconColor = "#f5f5f7",
     library = "fa"
@@ -94,16 +94,22 @@ logos <- awesomeIconList(
     iconColor = "#f5f5f7",
     library = "fa"
   ),
-  "Wellness" = makeAwesomeIcon(
-    text = fa("spa"),
-    markerColor = "lightgray",
-    iconColor = "#f5f5f7",
-    library = "fa"
-  ),
   "Library" = makeAwesomeIcon(
     text = fa("book"),
     markerColor = "lightgreen",
     iconColor = "#111112",
+    library = "fa"
+  ),
+  "Forest" = makeAwesomeIcon(
+    icon = "tree",
+    markerColor = "lightgray",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+  "Nature facilities" = makeAwesomeIcon(
+    icon = "spa",
+    markerColor = "#f0f00c",
+    iconColor = "#f5f5f7",
     library = "fa"
   ),
   "?" = makeAwesomeIcon(
