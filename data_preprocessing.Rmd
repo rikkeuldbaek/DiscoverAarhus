@@ -40,6 +40,7 @@ forests_json <- st_read('data/geojson_files/store_skove.json')
 
 firepits_json <- st_read('data/geojson_files/bålpladser.json')
 ```
+
 The JSON files do not all have the same column names and contents. Therefore, we need to extract the necessary information based on the column names. This function does that, as well as adding a description, type of activity, age group and whether it is indoor or outdoor for each of the JSON frames to be used for the final map.
 
 ```{r}
@@ -99,13 +100,13 @@ playgrounds <- create_sf(playgrounds_json, 'lokation', 'Playground', 'Outdoor pl
 
 outdoor_fitness <- create_sf(free_fitness_json, 'navn', 'Sport and fitness','Outdoor fitness facilities', 'Outdoor', 'Adults')
 
-shelters <- create_sf(shelters_json, 'navn', 'Shelter', 'Outdoor shelter', 'Outdoor', 'Both children and adults')
+shelters <- create_sf(shelters_json, 'navn', 'Nature facilities', 'Outdoor shelter', 'Outdoor', 'Both children and adults')
 
 tree_climbing <- create_sf(climbing_json, 'navn', 'Sport and fitness', 'Tree climbing', 'Outdoor', 'Both children and adults')
 
 forests <- create_sf(forests_json, 'navn', 'Forest', 'Forest', 'Outdoor', 'Both children and adults')
 
-firepits <- create_sf(firepits_json, 'navn', 'Bonfire pits', 'Bonfire pit in forest', 'Outdoor', 'Both children and adults')
+firepits <- create_sf(firepits_json, 'navn', 'Nature facilities', 'Bonfire pit in forest', 'Outdoor', 'Both children and adults')
 ```
 
 ## Cast all objects to 'POINTS'
