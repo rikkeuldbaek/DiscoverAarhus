@@ -5,10 +5,9 @@ account: w4odxi-rikke0uldb0k
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 9197486
-bundleId: 7270702
+bundleId: 7297690
 url: https://w4odxi-rikke0uldb0k.shinyapps.io/DiscoverAarhus/
-when: 1685183457.38071
-lastSyncTime: 1685183457.38073
+when: 1685724667.21
+lastSyncTime: 1685724667.21003
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: .RData|LICENSE|README.md

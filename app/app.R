@@ -4,27 +4,35 @@
 
 
 ######################### Load packages ###########################
-pacman::p_load(shiny, # R shiny functions
-       leaflet, # map package
-       waiter, # waiting screen package
-       tidyverse, #data wrangling
-       dplyr, # data wrangling
-       readxl, # read data
-       fontawesome # specify icons in logos
-       )
+# pacman::p_load(shiny, # R shiny functions
+#        leaflet, # map package
+#        waiter, # waiting screen package
+#        tidyverse, #data wrangling
+#        dplyr, # data wrangling
+#        readxl, # read data
+#        fontawesome # specify icons in logos
+#        )
+
+
+library(leaflet)
+library(waiter)
+library(readxl)
+library(dplyr)
+library(tidyverse)
+library(shiny)
+library(fontawesome)
+
 
 ######################### Load data ###########################
-setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Cognitive Science/6th_semester/spatial_analytics/DiscoverAarhus")
-#df <- read_excel("./data/cult_activities_aarhus.xls")
+#setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Cognitive Science/6th_semester/spatial_analytics/DiscoverAarhus")
 df <- read_csv("./data/final_data.csv")
-#df <- read_excel("./data/DiscoverAarhus.xlsx")
 
-df$latitude <- as.numeric(df$latitude)
-df$longitude <- as.numeric(df$longitude)
+df$type[df$type == 'Wellness'] <- 'Sport and fitness'
 
 
-#find unique activities
-sort(unique(df$type))
+
+
+################### Predefining variables #####################
 
 # predefined logos with colors for markers
 logos <- awesomeIconList(
@@ -43,12 +51,6 @@ logos <- awesomeIconList(
   "Cinema" = makeAwesomeIcon(
     icon = "film",
     markerColor = "red",
-    iconColor = "#f5f5f7",
-    library = "fa"
-  ),
-  "Cultural center" = makeAwesomeIcon(
-    icon = "compass",
-    markerColor = "gray",
     iconColor = "#f5f5f7",
     library = "fa"
   ),
@@ -72,7 +74,7 @@ logos <- awesomeIconList(
   ),
   "Park" = makeAwesomeIcon(
     text = fa("cloud-sun"),
-    markerColor = "green",
+    markerColor = "lightgreen",
     iconColor = "#f5f5f7",
     library = "fa"
   ),
@@ -96,35 +98,36 @@ logos <- awesomeIconList(
   ),
   "Library" = makeAwesomeIcon(
     text = fa("book"),
-    markerColor = "lightgreen",
+    markerColor = "lightgray",
     iconColor = "#111112",
     library = "fa"
   ),
   "Forest" = makeAwesomeIcon(
-    icon = "tree",
-    markerColor = "lightgray",
+    text = fa("tree"),
+    markerColor = "darkgreen",
     iconColor = "#f5f5f7",
     library = "fa"
   ),
   "Nature facilities" = makeAwesomeIcon(
-    icon = "spa",
-    markerColor = "#f0f00c",
+    text = fa("campground"),
+    markerColor = "lightred",
     iconColor = "#f5f5f7",
     library = "fa"
   ),
-  "?" = makeAwesomeIcon(
-    icon = "spa",
-    markerColor = "#f0f00c",
+  "Playground" = makeAwesomeIcon( 
+    text = fa("puzzle-piece"),
+    markerColor = "pink",
+    iconColor = "#f5f5f7",
+    library = "fa"
+  ),
+   "Other" = makeAwesomeIcon( 
+    icon = "compass",
+    markerColor = "gray",
     iconColor = "#f5f5f7",
     library = "fa"
   )
 )
  
-#### icons
-#https://fontawesome.com/search?q=libra&o=r&m=free
-#### colors
-# https://stackoverflow.com/questions/59789918/how-to-get-the-colours-i-want-with-leaflet-awesomemarkers 
-
 
 
 # Text for waiting screen
@@ -201,7 +204,7 @@ server <- function(input, output, session) {
   #waiter_show(html = waiting_screen, color = "#CC33FF")
   waiter_show(html = waiting_screen,
               image = "https://media.cnn.com/api/v1/images/stellar/prod/190410133420-01-aarhus-denmark.jpg?q=x_0,y_0,h_2772,w_4926,c_fill/h_720,w_1280/f_webp")
-    Sys.sleep(1) # display waiting screen for 8 seconds
+    Sys.sleep(8) # display waiting screen for 8 seconds
     waiter_hide()
     
 
