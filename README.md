@@ -44,11 +44,13 @@ https://github.com/rikkeuldbaek/DiscoverAarhus.git
 ```python
 cd DiscoverAarhus
 ```
+
 <br>
 
 ### **3.3 Run the scripts locally** 
 Firstly, in order to preprocess the data please open ```Rstudio``` and run the entire ```data_preprocessing.Rmd``` file, as stated previously this will generate a clean .csv file of the data (```DiscoverAarhusData.csv```). Secondly, in order to run the DiscoverAarhus application please open the ```app.R``` file in ```Rstudio``` and run the entire file. The app will automatically open in a an external plot R-window.  
 
+<br>
 
 ## **4. License** 
 The project of this repository is licensed under the MIT License. 
