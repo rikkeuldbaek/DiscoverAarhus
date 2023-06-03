@@ -16,10 +16,7 @@ The application has a limited availability of 25 hours per months, so if you exp
 <br> 
 
 
-<br>
-
-
-# **2. Repository Structure**
+## **2. Repository Structure**
 
 |Folder name|Description|Content|
 |---|---|---|
@@ -31,48 +28,28 @@ The raw data used in the ```data_preprocessing.Rmd``` script are located in the 
 
 <br>
 
-# **3 Usage and Reproducibility**
-## **3.1 Prerequisites** 
-In order for the user to be able to run the code, please make sure to have bash and python 3 installed on the used device. The code has been written and tested with Python 3.9.2 on a Linux operating system. In order to run the provided code for this assignment, please follow the instructions below.
+## **3 Usage and Reproducibility**
+### **3.1 Prerequisites** 
+In order for the user to be able to run the code locally, please make sure to have ```R``` (>= 4.0.2) and ```Rstudio```  (>=1.3.1073) installed on the used device. The code has been written and tested on a macOS version 13.0 operating system. In order to run the provided code of the repository, please follow the instructions below.
 
 <br>
 
-## **4.5.2 Setup Instructions** 
-**1) Clone the repository**
+### **3.2 Setup Instructions** 
+**3.2.1 Clone the repository**
 ```python
-git clone https://github.com/rikkeuldbaek/assignment-4-using-finetuned-transformers-rikkeuldbaek
+https://github.com/rikkeuldbaek/DiscoverAarhus.git
  ```
 
- **2) Setup** <br>
-Setup virtual environment (```LA4_env```) and install required packages.
+ **3.2.2 Change directory** <br>
 ```python
-bash setup.sh
+cd DiscoverAarhus
 ```
-
 <br>
 
-## **4.5.3 Run the script** 
-In order to run the three emotion classification scripts, please run the following command in the terminal after setting up. Please note that the three scripts take quite some time to run. 
-```python
-bash run.sh
-```
+### **3.3 Run the scripts locally** 
+Firstly, in order to preprocess the data please open ```Rstudio``` and run the entire ```data_preprocessing.Rmd``` file, as stated previously this will generate a clean .csv file of the data (```DiscoverAarhusData.csv```). Secondly, in order to run the DiscoverAarhus application please open the ```app.R``` file in ```Rstudio``` and run the entire file. The app will automatically open in a an external plot R-window.  
 
 
-<br>
+## **4. License** 
+The project of this repository is licensed under the MIT License. 
 
-
-# **4.6 Results**
-The results of the emotion classification of *all* the data's headlines, only *fake* news headlines, and only *real* news headlines are visualized using barplots. The barplots show the distribution of counts across seven emotions. Every emotion is colour coded appropriately to reflect a mapping between emotion and colour. The three plots show same distributional tendencies, with the vast majority of headlines being classified as *neutral*. The only visible change in the distribution occurs between *sadness* and *disgust* in the *fake* news headlines, other than that there are not much difference between the plots. One could maybe expect *fake* news to have a more negative emotion distribution (i.e, a larger count frequency of *anger*, *fear*, *sadness*, and *disgust* ), however this seems not to be the case. This could indicate that emotions might not be as strong of a predictor of *fake* or *real* news. However, a statistical test should be conducted in order to conclude whether or not there is a difference in the emotion distributions. 
-
-<br>
-
-|All news headlines|Fake news headlines|Real news headlines|
-|---|---|---|
-|![plot](out/emotion_distribution_all.png)|![plot](out/emotion_distribution_fake.png)| ![plot](out/emotion_distribution_real.png)|
-
-<br>
-
-# **Resources**
-[HuggingFace - Emotion classifier](https://huggingface.co/j-hartmann/emotion-english-distilroberta-base)
-
-[Data - Fake or Real News](https://www.kaggle.com/datasets/jillanisofttech/fake-or-real-news)
