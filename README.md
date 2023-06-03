@@ -9,7 +9,7 @@
 
 This repository contains the DiscoverAarhus application, which has been designed to motivate citizens and tourists of Aarhus to gain more knowledge of the cultural and nature activities in their environment and offer a solution on how to explore these. The following link is a link to the DiscoverAarhus application developed by [Louise Brix Pilegaard Hansen](https://github.com/louisebphansen) and [Rikke Uldbæk](https://github.com/rikkeuldbaek) in the course Spatial Analytics at Aarhus University (F23.147201U022.A):
 
-https://w4odxi-rikke0uldb0k.shinyapps.io/DiscoverAarhus/
+> https://w4odxi-rikke0uldb0k.shinyapps.io/DiscoverAarhus/
 
 The application has a limited availability of 25 hours per months, so if you experience any challenges with opening the application please contact [Rikke Uldbæk](https://github.com/rikkeuldbaek) on 202007501@post.au.dk or [Louise Brix Pilegaard Hansen](https://github.com/louisebphansen) on 202006093@post.au.dk. 
 
