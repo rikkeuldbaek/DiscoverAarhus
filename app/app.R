@@ -25,11 +25,7 @@ library(fontawesome)
 
 ######################### Load data ###########################
 #setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Cognitive Science/6th_semester/spatial_analytics/DiscoverAarhus")
-df <- read_csv("./data/final_data.csv")
-
-df$type[df$type == 'Wellness'] <- 'Sport and fitness'
-
-
+df <- read_csv("./data/DiscoverAarhusData.csv")
 
 
 ################### Predefining variables #####################
