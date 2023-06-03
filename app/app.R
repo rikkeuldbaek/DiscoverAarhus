@@ -4,32 +4,21 @@
 
 
 ######################### Load packages ###########################
-# pacman::p_load(shiny, # R shiny functions
-#        leaflet, # map package
-#        waiter, # waiting screen package
-#        tidyverse, #data wrangling
-#        dplyr, # data wrangling
-#        readxl, # read data
-#        fontawesome # specify icons in logos
-#        )
-
-
-library(leaflet)
-library(waiter)
-library(readxl)
-library(dplyr)
-library(tidyverse)
-library(shiny)
-library(fontawesome)
+ pacman::p_load(shiny, # R shiny functions
+        leaflet, # map package
+        waiter, # waiting screen package
+        tidyverse, #data wrangling
+        dplyr, # data wrangling
+        readxl, # read data
+        fontawesome # specify icons in logos
+        )
 
 
 ######################### Load data ###########################
-#setwd("~/Library/Mobile Documents/com~apple~CloudDocs/Cognitive Science/6th_semester/spatial_analytics/DiscoverAarhus")
 df <- read_csv("./data/DiscoverAarhusData.csv")
 
 
 ################### Predefining variables #####################
-
 # predefined logos with colors for markers
 logos <- awesomeIconList(
   "Beach" = makeAwesomeIcon(
@@ -177,7 +166,7 @@ ui <- fluidPage(
                         choices = c(unique(df$type), unique(df$all_type)),
                         selected =unique(df$all_type))
             
-        ), #sidebar panel end
+        ),
 
         
   # Main panel - map output      
@@ -185,8 +174,8 @@ ui <- fluidPage(
         # create map using leaflet
            leafletOutput(outputId = 'map'))
   
-    ) #sidebar layoyt end
-) #fluid page end
+    )
+)
 
 
 
@@ -197,7 +186,6 @@ server <- function(input, output, session) {
     
     
 # Waiting screen
-  #waiter_show(html = waiting_screen, color = "#CC33FF")
   waiter_show(html = waiting_screen,
               image = "https://media.cnn.com/api/v1/images/stellar/prod/190410133420-01-aarhus-denmark.jpg?q=x_0,y_0,h_2772,w_4926,c_fill/h_720,w_1280/f_webp")
     Sys.sleep(8) # display waiting screen for 8 seconds
@@ -210,8 +198,8 @@ server <- function(input, output, session) {
   })
 
   observeEvent(AGE_GROUP_and_INSIDE_OUTSIDE(), {
-    choices <- c(unique(AGE_GROUP_and_INSIDE_OUTSIDE()$indoor_outdoor),  unique(AGE_GROUP_and_INSIDE_OUTSIDE()$all_in_out))
-    updateSelectInput(session, inputId = "indoor_outdoor", choices = choices, selected = unique(df$all_in_out)) 
+    choices <- c(unique(AGE_GROUP_and_INSIDE_OUTSIDE()$indoor_outdoor),  unique(AGE_GROUP_and_INSIDE_OUTSIDE()$all_in_out)) #define new select options based on filter
+    updateSelectInput(session, inputId = "indoor_outdoor", choices = choices, selected = unique(df$all_in_out))  # update select input widget
   })
   
   
@@ -221,14 +209,14 @@ server <- function(input, output, session) {
     filter(AGE_GROUP_and_INSIDE_OUTSIDE(), indoor_outdoor == input$indoor_outdoor | all_in_out== input$indoor_outdoor)
   })
   observeEvent(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY(), {
-    choices <- c(sort(unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$type)),  unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$all_type))
-    updateSelectInput(session, inputId = "activity_category", choices = choices, selected = unique(df$all_type))
+    choices <- c(sort(unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$type)),  unique(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY()$all_type)) #define new select options based on filter
+    updateSelectInput(session, inputId = "activity_category", choices = choices, selected = unique(df$all_type)) # update select input widget
   })
   
 ### ----------- reactive function for activity category ----------- ### 
  ACTIVITY_CATEGORY_end <- reactive({
      req(input$activity_category)
-     filter(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY(), type == input$activity_category | all_type == input$activity_category)
+     filter(INSIDE_OUTSIDE_and_ACTIVITY_CATEGORY(), type == input$activity_category | all_type == input$activity_category) 
    })
  
  
