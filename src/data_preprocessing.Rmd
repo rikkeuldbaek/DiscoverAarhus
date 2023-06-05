@@ -1,6 +1,6 @@
 ---
 title: "Data Preprocessing"
-author: "Louise Brix Pilegaard Hansen and Rikke Uldbæk"
+author: " Louise Brix Pilegaard Hansen (202006093) and Rikke Uldbæk (202007501)"
 date: "2023-04-16"
 output: html_document
 ---
