@@ -28,17 +28,17 @@ options(digits = 15)
 Loading the GeoJSON data in the 'data/geojson_files' folder as simple features objects:
 
 ```{r}
-playgrounds_json <- st_read('data/geojson_files/legepladser.json')
+playgrounds_json <- st_read('../data/geojson_files/legepladser.json')
 
-free_fitness_json <- st_read('data/geojson_files/fitness_i_det_fri.json')
+free_fitness_json <- st_read('../data/geojson_files/fitness_i_det_fri.json')
 
-shelters_json <- st_read('data/geojson_files/shelter.json')
+shelters_json <- st_read('../data/geojson_files/shelter.json')
 
-climbing_json <- st_read('data/geojson_files/træklatring.json')
+climbing_json <- st_read('../data/geojson_files/træklatring.json')
 
-forests_json <- st_read('data/geojson_files/store_skove.json')
+forests_json <- st_read('../data/geojson_files/store_skove.json')
 
-firepits_json <- st_read('data/geojson_files/bålpladser.json')
+firepits_json <- st_read('../data/geojson_files/bålpladser.json')
 ```
 
 The JSON files do not all have the same column names and contents. Therefore, we need to extract the necessary information based on the column names. This function does that, as well as adding a description, type of activity, age group and whether it is indoor or outdoor for each of the JSON frames to be used for the final map.
@@ -143,11 +143,7 @@ All the datapoints are now represented as the 'POINT' geometry.
 # Add our own excel data
 ```{r}
 # read excel file with own Aarhus datapoints
-excel_data <- read_excel("./data/DiscoverAarhus.xlsx")
-
-# DELETE!
-excel_data <- excel_data %>% 
-  drop_na()
+excel_data <- read_excel("../data/collected_data.xlsx")
 
 # convert the excel dataframe to a sf object and set CRS
 excel_sf <- st_as_sf(x = excel_data, coords=c("longitude", "latitude"), crs = 4326) # use longitude and latitude columns as geometry
@@ -178,7 +174,7 @@ The current datapoints cover all of Aarhus Kommune. We are only interested in ac
 
 ```{r warning=FALSE}
 # read GeoJSON file containing polygons of postal districts
-postdistrikter <- st_read('data/geojson_files/postdistrikter.json')
+postdistrikter <- st_read('../data/geojson_files/postdistrikter.json')
 
 # transform CRS to match the other data
 postdistrikter <- postdistrikter %>% 
@@ -201,15 +197,6 @@ df_all_bounded <- st_intersection(df_all, postdistrikter)
 df_all_bounded <- subset(df_all_bounded, select = -c(nr_dist, postdistrikt, postnummer, mi_style, mi_prinx, geometry))
 
 # save to csv to be imported in ShinyApp script
-write_csv(df_all_bounded, 'data/final_data.csv')
-```
-
-
-## map that adds all points and polygons
-```{r}
-c <- leaflet() %>%
-  addTiles() %>%  # Add default OpenStreetMap map tiles
-  addMarkers(lng=df_all_bounded$longitude, lat=df_all_bounded$latitude, popup = paste0('<b>', df_all_bounded$name,'</b>','<br/>', '<i>',  df_all_bounded$description, '</i>'))
-c  # Print the map
+write_csv(df_all_bounded, '../data/DiscoverAarhusData.csv')
 ```
 
