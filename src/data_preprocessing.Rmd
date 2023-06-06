@@ -14,9 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(sp)
 library(rgdal)
 library(sf)
-library(leaflet)
 library(readxl)
-library(googlesheets4)
 library(tidyverse)
 
 # set decimal digits
