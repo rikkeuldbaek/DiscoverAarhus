@@ -35,20 +35,16 @@ In order for the user to be able to run the code locally, please make sure to ha
 <br>
 
 ### **3.2. Setup Instructions** 
-**3.2.1. Clone the repository**
+Please clone this repository by opening a new terminal tab on your local device and paste the following line. 
 ```python
-https://github.com/rikkeuldbaek/DiscoverAarhus.git
+git clone https://github.com/rikkeuldbaek/DiscoverAarhus.git
  ```
-
- **3.2.2. Change directory** <br>
-```python
-cd DiscoverAarhus
-```
+ You will now have a folder on your local device called ```DiscoverAarhus```. Please navigate to this folder and open ```Rstudio```. 
 
 <br>
 
 ### **3.3. Run the scripts locally** 
-Firstly, in order to preprocess the data please open ```Rstudio``` and run the entire ```data_preprocessing.Rmd``` file, as stated previously this will generate a clean .csv file of the data (```DiscoverAarhusData.csv```). Secondly, in order to run the DiscoverAarhus application please open the ```app.R``` file in ```Rstudio``` and run the entire file. The app will automatically open in a an external plot R-window.  
+Firstly, in order to preprocess the data please open the ```data_preprocessing.Rmd``` file in ```Rstudio``` and run the entire file.  As stated previously this will generate a clean .csv file of the data (```DiscoverAarhusData.csv```). Secondly, in order to run the DiscoverAarhus application please open the ```app.R``` file in ```Rstudio``` and run the entire file. The app will automatically open in a an external plot R-window. 
 
 <br>
 
